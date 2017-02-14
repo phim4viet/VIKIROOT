@@ -64,11 +64,11 @@ _start:
         //
         ////////////////////////////////////////////////////////////////
 
-        mov    r7, #24
+        ldr    r7, =__NR_getuid
         svc    #0
         cmp    r0, #0
         bne    return
-        mov    r7, #20
+        ldr    r7, =__NR_getpid
         svc    #0
         cmp    r0, #1
         bne   return
@@ -87,8 +87,8 @@ _start:
         mov    r3, #448
         ldr    r7, =__NR_openat
         svc    #0
-	mov    r5, #12
-	mov    r6, #1
+        mov    r5, #12
+        mov    r6, #1
         cmn    r0, r6, lsl r5
         bhi   return
 
@@ -103,7 +103,7 @@ _start:
         mov    r2, #0
         mov    r3, #0
         mov    r4, #0
-        mov    r7, #120
+        ldr    r7,  =__NR_clone
         svc    #0
         cmp    r0, #0
         bne    return
@@ -149,12 +149,12 @@ _start:
         str    r0, [sp, #0]
         str    r2, [sp, #8]
         mov    r1, sp
-        mov    r7, #11
+        ldr    r7, =__NR_execve
         svc    #0
 
 exit:
         mov    r0, #0
-        mov    r7, #1
+        ldr    r7, =__NR_exit
         svc    #0
 
 return:
