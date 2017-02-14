@@ -6,7 +6,7 @@ LOCAL_SRC_FILES := \
   exploit.c
 
 LOCAL_CFLAGS += -DDEBUG -D__ARM__ -Wunused
-APP_ABI := arm64-v8a
+APP_ABI := armeabi armeabi-v7a
 
 LOCAL_MODULE := exploit
 LOCAL_MODULE_TAGS := optional

