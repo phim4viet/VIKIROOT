@@ -170,7 +170,7 @@ path:
 
         .balign 4
 sockaddr:
-        .short STDERR
+        .short AF_INET
         .short PORT
         .word  IP
 
