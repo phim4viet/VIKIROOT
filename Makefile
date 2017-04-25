@@ -1,8 +1,17 @@
-CFLAGS := -Os -fPIE -Wall
-LDFLAGS := -pthread -s -pie -Wall
-CC := arm-linux-androideabi-gcc
-AS := arm-linux-androideabi-as
-OC := arm-linux-androideabi-objcopy
+#TOOLCHAIN := $(ANDROID_NDK_HOME)/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64/bin/
+#SYSROOT := $(ANDROID_NDK_HOME)/platforms/android-24/arch-arm64/
+#PREFIX := $(TOOLCHAIN)aarch64-linux-android-
+
+TOOLCHAIN := $(ANDROID_NDK_HOME)/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/
+SYSROOT := $(ANDROID_NDK_HOME)/platforms/android-24/arch-arm/
+PREFIX := $(TOOLCHAIN)arm-linux-androideabi-
+
+CFLAGS := -Os -fPIE -Wall --sysroot=$(SYSROOT)
+LDFLAGS := -pthread -s -pie -Wall --sysroot=$(SYSROOT)
+CC := $(PREFIX)gcc
+AS := $(PREFIX)as
+OC := $(PREFIX)objcopy
+OJ := $(PREFIX)objdump
 
 debug: CFLAGS += -DDBG
 debug: all
