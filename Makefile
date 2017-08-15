@@ -1,10 +1,11 @@
-#TOOLCHAIN := $(ANDROID_NDK_HOME)/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64/bin/
-#SYSROOT := $(ANDROID_NDK_HOME)/platforms/android-24/arch-arm64/
-#PREFIX := $(TOOLCHAIN)aarch64-linux-android-
 
-TOOLCHAIN := $(ANDROID_NDK_HOME)/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/
-SYSROOT := $(ANDROID_NDK_HOME)/platforms/android-24/arch-arm/
-PREFIX := $(TOOLCHAIN)arm-linux-androideabi-
+TOOLCHAIN := $(ANDROID_NDK_HOME)/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64/bin/
+SYSROOT := $(ANDROID_NDK_HOME)/platforms/android-24/arch-arm64/
+PREFIX := $(TOOLCHAIN)aarch64-linux-android-
+
+#TOOLCHAIN := $(ANDROID_NDK_HOME)/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin/
+#SYSROOT := $(ANDROID_NDK_HOME)/platforms/android-24/arch-arm/
+#PREFIX := $(TOOLCHAIN)arm-linux-androideabi-
 
 CFLAGS := -Os -fPIE -Wall --sysroot=$(SYSROOT)
 LDFLAGS := -pthread -s -pie -Wall --sysroot=$(SYSROOT)
@@ -27,7 +28,7 @@ exploit.o: exploit.c payload.h
 payload.h: payload
 	xxd -i $^ $@
 
-payload.o: payload.s
+payload.o: payload.s64
 	$(AS) -o $@ $^
 
 payload: payload.o
